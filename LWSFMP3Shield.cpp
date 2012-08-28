@@ -133,7 +133,12 @@ void LWSFMP3Shield::SetVolume(unsigned char leftChan, unsigned char rightChan){
 	Mp3WriteRegister(SCI_VOL, leftChan, rightChan);
 }
 
-uint8_t LWSFMP3Shield::playMP3(unsigned char[]* mp3)
+void LWSFMP3Shield::setBitRate(uint16_t bitr){
+	bitrate = bitr;
+	return;
+}
+
+uint8_t LWSFMP3Shield::playMP3(unsigned char[] mp3)
 {
 	unsigned char *p;
 	p = &mp3[0] //point p at the start of array
@@ -181,8 +186,8 @@ unsigned int Mp3ReadRegister(unsigned char addressByte){
 	return resultValue;
 	
 	if(playing){
-		refill();
-		attachInterrupt(0,refill, RISING);
+		//refill();
+		//attachInterrupt(0,refill, RISING);
 	}
 }
 
@@ -204,15 +209,22 @@ void Mp3WriteRegister(unsigned char addressByte, unsigned char highByte, unsigne
 	
 	// resume interrupt if playing
 	if (playing){
-		refill();
+		//refill();
 		//attach refill interrupt off DREQ line, pin 2
-		attachInterrupt(0, refill, RISING);
+		//attachInterrupt(0, refill, RISING);
 	}
 	}
 	
 static void refill(){
 	while(digitalRead(MP3_DREQ)){
 		//TODO: Try to read next 32 bytes of song
+		
+		digitalWrite(MP3_XDCS, LOW); // Select Data
+		for (int y=0; y<sizeOf(mp3DataBuffer); y++) {
+			SPI.transfer(mp3DataBuffer[y]); // Send SPI Byte
+		}
+		
+		digitalWrite(MP3_XDCS, HIGH);
 	}
 }
 	
